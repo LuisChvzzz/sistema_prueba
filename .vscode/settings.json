@@ -1,0 +1,3 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/antigravity-env/bin/python"
+}

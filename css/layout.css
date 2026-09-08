@@ -1,0 +1,405 @@
+/* ==========================================================================
+   CloudAcc - Layout Styles
+   Sidebar, Header, Main App Grid & View Containers
+   ========================================================================== */
+
+.app-wrapper {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-primary);
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  transition: transform var(--transition-normal), width var(--transition-normal);
+}
+
+.sidebar-brand {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.brand-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+/* Navigation List */
+.sidebar-nav {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+}
+
+.nav-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  padding: 0.5rem 0.75rem 0.25rem;
+  margin-top: 0.75rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  position: relative;
+}
+
+.nav-item:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+  transform: translateX(3px);
+}
+
+.nav-item.active {
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 3.5px;
+  background-color: var(--primary);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+}
+
+.nav-item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke-width: 2;
+  transition: transform var(--transition-fast);
+}
+
+.nav-item:hover svg {
+  transform: scale(1.1);
+}
+
+.nav-item-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-full);
+  background-color: var(--danger-light);
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* Sidebar Footer / Cloud Status */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+}
+
+.cloud-status-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.cloud-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--success);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cloud-pulse-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background-color: var(--success);
+  opacity: 0.4;
+  animation: pulse 2s infinite ease-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.cloud-status-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cloud-status-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cloud-status-detail {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+/* Main Content Area */
+.main-wrapper {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  transition: margin-left var(--transition-normal);
+}
+
+/* App Header */
+.app-header {
+  height: var(--header-height);
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(8px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.header-page-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-page-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.header-page-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+/* Header Buttons */
+.theme-toggle-btn, .quick-action-btn, .icon-btn {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-btn:hover, .quick-action-btn:hover, .icon-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-btn svg, .quick-action-btn svg, .icon-btn svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Store Badge in Header */
+.store-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  background-color: var(--primary-light);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.store-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary);
+}
+
+.store-pill-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Page Content View Containers */
+.page-container {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.view-section {
+  display: none;
+}
+
+.view-section.active {
+  display: block;
+}
+
+/* Overlay for Mobile Sidebar */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 45;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  .menu-toggle-btn {
+    display: flex;
+  }
+
+  .page-container {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 1rem;
+  }
+
+  .header-page-subtitle {
+    display: none;
+  }
+
+  .store-pill {
+    display: none;
+  }
+
+  .page-container {
+    padding: 1rem 0.75rem;
+  }
+}
