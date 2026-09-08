@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CloudAcc - Inventory & Accessories Catalog View
-   Catalog management, margin calculators, stock level alerts & CRUD operations
+   CloudAcc - Inventory & Accessories Catalog View (MXN + Custom Categories)
+   Catalog management, dynamic category creation, margin calculators & CRUD
    ========================================================================== */
 
 import { Store } from '../store.js';
@@ -10,12 +10,12 @@ import { Toast } from '../utils/notifications.js';
 export const InventoryView = {
   searchQuery: '',
   filterCategory: 'all',
-  filterStatus: 'all', // 'all' | 'low' | 'out'
+  filterStatus: 'all',
   editingProductId: null,
 
   render(container) {
     const products = Store.getProducts();
-    const categories = Store.state.categories;
+    const categories = Store.getCategories();
     const settings = Store.getSettings();
 
     // Filter products
@@ -40,10 +40,10 @@ export const InventoryView = {
       <div style="display: flex; flex-direction: column; gap: 1.5rem;">
         <!-- Header Actions Bar -->
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
-          <div style="display: flex; gap: 0.75rem; flex: 1; min-width: 280px; max-width: 600px;">
-            <div class="search-input-box">
+          <div style="display: flex; gap: 0.75rem; flex: 1; min-width: 280px; max-width: 600px; flex-wrap: wrap;">
+            <div class="search-input-box" style="flex: 1; min-width: 220px;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="inv-search-input" placeholder="Buscar por accesorio, SKU, marca o modelo de teléfono..." value="${Formatters.escape(this.searchQuery)}">
+              <input type="text" id="inv-search-input" placeholder="Buscar por accesorio, SKU, modelo o marca..." value="${Formatters.escape(this.searchQuery)}">
             </div>
 
             <select class="form-select" id="inv-category-filter" style="width: auto; min-width: 170px;">
@@ -52,7 +52,11 @@ export const InventoryView = {
             </select>
           </div>
 
-          <div style="display: flex; gap: 0.75rem;">
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary" id="btn-quick-new-category" title="Crear nueva categoría para productos no listados">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              + Nueva Categoría
+            </button>
             <button class="btn btn-secondary" id="btn-export-csv" title="Descargar reporte en formato CSV">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar CSV
@@ -163,12 +167,15 @@ export const InventoryView = {
             <form id="product-form">
               <div class="form-group">
                 <label class="form-label">Nombre del Accesorio <span class="req">*</span></label>
-                <input type="text" class="form-input" id="prod-name" required placeholder="Ej. Funda MagSafe Fibra de Carbono Antigolpes">
+                <input type="text" class="form-input" id="prod-name" required placeholder="Ej. Funda MagSafe Silicona Original">
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Categoría <span class="req">*</span></label>
+                  <div class="flex justify-between items-center">
+                    <label class="form-label">Categoría <span class="req">*</span></label>
+                    <button type="button" class="btn btn-sm btn-ghost text-xs text-primary" id="btn-inline-new-cat" style="padding: 0;">+ Nueva</button>
+                  </div>
                   <select class="form-select" id="prod-category" required>
                     ${categories.map(c => `<option value="${Formatters.escape(c)}">${c}</option>`).join('')}
                   </select>
@@ -199,24 +206,24 @@ export const InventoryView = {
 
               <div class="form-row" style="background: var(--bg-surface-elevated); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
                 <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label">Costo de Compra <span class="req">*</span></label>
-                  <input type="number" step="0.01" min="0" class="form-input" id="prod-cost" required value="5.00">
+                  <label class="form-label">Costo de Compra ($ MXN) <span class="req">*</span></label>
+                  <input type="number" step="1" min="0" class="form-input" id="prod-cost" required value="95">
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                  <label class="form-label">Precio de Venta <span class="req">*</span></label>
-                  <input type="number" step="0.01" min="0" class="form-input font-bold" id="prod-price" required value="15.00">
+                  <label class="form-label">Precio de Venta ($ MXN) <span class="req">*</span></label>
+                  <input type="number" step="1" min="0" class="form-input font-bold" id="prod-price" required value="290">
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center;">
                   <div class="margin-indicator" id="prod-margin-preview">
-                    Margen de Ganancia: <strong>66.7%</strong>
+                    Margen de Ganancia: <strong>67.2%</strong>
                   </div>
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
-                  <label class="form-label">Stock Actual <span class="req">*</span></label>
-                  <input type="number" min="0" class="form-input" id="prod-stock" required value="10">
+                  <label class="form-label">Stock Actual (piezas) <span class="req">*</span></label>
+                  <input type="number" min="0" class="form-input" id="prod-stock" required value="15">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Stock Mínimo de Alerta <span class="req">*</span></label>
@@ -256,8 +263,8 @@ export const InventoryView = {
             </div>
 
             <div class="form-group">
-              <label class="form-label">Cantidad a Modificar</label>
-              <input type="number" min="1" value="5" class="form-input font-bold" id="stock-adjust-qty">
+              <label class="form-label">Cantidad a Modificar (Piezas)</label>
+              <input type="number" min="1" value="10" class="form-input font-bold" id="stock-adjust-qty">
             </div>
           </div>
           <div class="modal-footer">
@@ -302,6 +309,33 @@ export const InventoryView = {
         this.render(container);
       });
     });
+
+    // Quick New Category Button
+    const quickNewCatBtn = container.querySelector('#btn-quick-new-category');
+    if (quickNewCatBtn) {
+      quickNewCatBtn.addEventListener('click', () => {
+        this.promptNewCategory(container);
+      });
+    }
+
+    // Inline New Category Button in Product Modal
+    const inlineNewCatBtn = container.querySelector('#btn-inline-new-cat');
+    if (inlineNewCatBtn) {
+      inlineNewCatBtn.addEventListener('click', () => {
+        const catName = prompt('Ingrese el nombre de la nueva categoría de producto (ej. Smartwatches, Correas, Micas UV):');
+        if (catName && catName.trim()) {
+          const added = Store.addCategory(catName.trim());
+          if (added) {
+            const select = container.querySelector('#prod-category');
+            const opt = document.createElement('option');
+            opt.value = added;
+            opt.textContent = added;
+            opt.selected = true;
+            select.appendChild(opt);
+          }
+        }
+      });
+    }
 
     // Export CSV
     const exportBtn = container.querySelector('#btn-export-csv');
@@ -415,7 +449,7 @@ export const InventoryView = {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.getAttribute('data-id');
         const prod = Store.getProductById(id);
-        if (prod && confirm(`¿Estás seguro de eliminar "${prod.name}" del catálogo en la nube?`)) {
+        if (prod && confirm(`¿Estás seguro de eliminar "${prod.name}" del catálogo?`)) {
           Store.deleteProduct(id);
           Toast.info('Producto eliminado de la base de datos');
         }
@@ -437,7 +471,7 @@ export const InventoryView = {
           if (!prod) return;
 
           container.querySelector('#stock-modal-prod-name').textContent = prod.name;
-          container.querySelector('#stock-modal-current-stock').textContent = `Stock actual: ${prod.stock} unidades (${prod.compatibleModel})`;
+          container.querySelector('#stock-modal-current-stock').textContent = `Stock actual: ${prod.stock} piezas (${prod.compatibleModel})`;
           stockModal.classList.add('open');
         });
       });
@@ -458,9 +492,20 @@ export const InventoryView = {
     }
   },
 
+  promptNewCategory(container) {
+    const name = prompt('Ingrese el nombre de la nueva categoría (ej. "Micas de Hidrogel", "Stands de Escritorio", "Correas de Apple Watch"):');
+    if (name && name.trim()) {
+      const added = Store.addCategory(name.trim());
+      if (added) {
+        this.filterCategory = added;
+        this.render(container);
+      }
+    }
+  },
+
   exportCSV() {
     const products = Store.getProducts();
-    const headers = ['SKU', 'Nombre', 'Categoria', 'Modelo_Compatible', 'Marca', 'Costo', 'Precio', 'Stock', 'Stock_Minimo', 'Margen_Pct'];
+    const headers = ['SKU', 'Nombre', 'Categoria', 'Modelo_Compatible', 'Marca', 'Costo_MXN', 'Precio_MXN', 'Stock', 'Stock_Minimo', 'Margen_Pct'];
 
     const rows = products.map(p => [
       `"${p.sku}"`,
@@ -479,10 +524,10 @@ export const InventoryView = {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `inventario_accesorios_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `inventario_accesorios_mxn_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    Toast.success('Catálogo exportado en formato CSV');
+    Toast.success('Catálogo exportado en formato CSV ($ MXN)');
   }
 };

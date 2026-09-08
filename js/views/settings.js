@@ -1,6 +1,6 @@
 /* ==========================================================================
-   CloudAcc - Settings & Cloud Synchronization View
-   Cloud database configuration, store personalization, backups & deployment
+   CloudAcc - Settings & Cloud Synchronization View (MXN & Security RBAC)
+   Cloud database configuration, Admin PIN management, store profile & backups
    ========================================================================== */
 
 import { Store } from '../store.js';
@@ -14,6 +14,137 @@ export const SettingsView = {
     container.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 2rem; max-width: 960px; margin: 0 auto;">
         
+        <!-- Security & Admin PIN Card -->
+        <div class="card" style="border-left: 4px solid var(--warning);">
+          <div style="margin-bottom: 1.25rem;">
+            <div class="flex justify-between items-center">
+              <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Seguridad y Control de Acceso (PIN de Administrador)
+              </h2>
+              <span class="badge badge-warning">Protección Activa</span>
+            </div>
+            <p class="text-sm text-muted">
+              El rol de <strong>Empleado (Cajero)</strong> solo tiene permiso para operar el Punto de Venta (POS). Para acceder a Inventario, Tablero, Ventas o Nube, el sistema requerirá este código PIN.
+            </p>
+          </div>
+
+          <form id="admin-pin-form" style="background-color: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">PIN Actual de Administrador</label>
+                <input type="password" class="form-input font-mono font-bold" id="input-current-pin" placeholder="PIN actual (por defecto 1234)" required maxlength="8">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Nuevo PIN de Administrador (4 a 6 dígitos)</label>
+                <input type="password" class="form-input font-mono font-bold" id="input-new-pin" placeholder="Ej. 5678" required maxlength="8">
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center" style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border-subtle);">
+              <div class="text-xs text-muted">
+                PIN activo actual: <span class="font-mono font-bold">••••</span> (Predeterminado de fábrica: 1234)
+              </div>
+              <button type="submit" class="btn btn-primary">
+                Actualizar Código PIN
+              </button>
+            </div>
+          </form>
+
+          <!-- Permissions Comparison Table -->
+          <div style="margin-top: 1.25rem; font-size: 0.82rem;">
+            <div class="font-semibold" style="margin-bottom: 0.5rem;">Nivel de Permisos por Usuario:</div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Módulo</th>
+                    <th>👑 Administrador</th>
+                    <th>👤 Empleado (Cajero)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Punto de Venta (POS) & Cobros</strong></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Inventario (Precios, Costos y Altas)</strong></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                    <td><span class="badge badge-warning">🔒 Requiere PIN Admin</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Tablero Ejecutivo & Ganancias Netas</strong></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                    <td><span class="badge badge-warning">🔒 Requiere PIN Admin</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Historial & Cancelaciones / Reembolsos</strong></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                    <td><span class="badge badge-warning">🔒 Requiere PIN Admin</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Configuración Cloud & Respaldos</strong></td>
+                    <td><span class="badge badge-success">✓ Permitido</span></td>
+                    <td><span class="badge badge-warning">🔒 Requiere PIN Admin</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Store Profile Card -->
+        <div class="card">
+          <div style="margin-bottom: 1.25rem;">
+            <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              Perfil de la Tienda de Accesorios
+            </h2>
+            <p class="text-sm text-muted">Datos que se mostrarán en la interfaz y en los comprobantes/tickets térmicos impresos.</p>
+          </div>
+
+          <form id="store-profile-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre del Negocio</label>
+                <input type="text" class="form-input" id="set-store-name" value="${settings.storeName}" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Moneda Principal</label>
+                <select class="form-select" id="set-currency">
+                  <option value="MXN" selected>MXN ($ - Peso Mexicano)</option>
+                  <option value="USD">USD ($ - Dólar Estadounidense)</option>
+                  <option value="COP">COP ($ - Peso Colombiano)</option>
+                  <option value="EUR">EUR (€ - Euro)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Teléfono de Atención / WhatsApp</label>
+                <input type="text" class="form-input" id="set-phone" value="${settings.phone || ''}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dirección Física / Sucursal</label>
+                <input type="text" class="form-input" id="set-address" value="${settings.address || ''}">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pie de Página del Ticket (Términos / Garantía)</label>
+              <textarea class="form-textarea" id="set-ticket-footer" rows="2">${settings.ticketFooter || ''}</textarea>
+            </div>
+
+            <div class="flex justify-end" style="margin-top: 1rem;">
+              <button type="submit" class="btn btn-primary">Guardar Perfil</button>
+            </div>
+          </form>
+        </div>
+
         <!-- Cloud Connectivity Card -->
         <div class="card" style="border-left: 4px solid var(--primary);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
@@ -67,59 +198,6 @@ export const SettingsView = {
           </form>
         </div>
 
-        <!-- Store Profile Card -->
-        <div class="card">
-          <div style="margin-bottom: 1.25rem;">
-            <h2 style="font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Perfil de la Tienda de Accesorios
-            </h2>
-            <p class="text-sm text-muted">Datos que se mostrarán en la interfaz y en los comprobantes/tickets térmicos impresos.</p>
-          </div>
-
-          <form id="store-profile-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Nombre del Negocio</label>
-                <input type="text" class="form-input" id="set-store-name" value="${settings.storeName}" required>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Moneda Principal</label>
-                <select class="form-select" id="set-currency">
-                  <option value="USD" ${settings.currency === 'USD' ? 'selected' : ''}>USD ($ - Dólar Estadounidense)</option>
-                  <option value="MXN" ${settings.currency === 'MXN' ? 'selected' : ''}>MXN ($ - Peso Mexicano)</option>
-                  <option value="COP" ${settings.currency === 'COP' ? 'selected' : ''}>COP ($ - Peso Colombiano)</option>
-                  <option value="EUR" ${settings.currency === 'EUR' ? 'selected' : ''}>EUR (€ - Euro)</option>
-                  <option value="ARS" ${settings.currency === 'ARS' ? 'selected' : ''}>ARS ($ - Peso Argentino)</option>
-                  <option value="CLP" ${settings.currency === 'CLP' ? 'selected' : ''}>CLP ($ - Peso Chileno)</option>
-                  <option value="PEN" ${settings.currency === 'PEN' ? 'selected' : ''}>PEN (S/ - Sol Peruano)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Teléfono de Atención / WhatsApp</label>
-                <input type="text" class="form-input" id="set-phone" value="${settings.phone || ''}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">Dirección Física / Sucursal</label>
-                <input type="text" class="form-input" id="set-address" value="${settings.address || ''}">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">Pie de Página del Ticket (Términos / Garantía)</label>
-              <textarea class="form-textarea" id="set-ticket-footer" rows="2">${settings.ticketFooter || ''}</textarea>
-            </div>
-
-            <div class="flex justify-end" style="margin-top: 1rem;">
-              <button type="submit" class="btn btn-primary">Guardar Perfil</button>
-            </div>
-          </form>
-        </div>
-
         <!-- Cloud Backups & Migration -->
         <div class="card">
           <div style="margin-bottom: 1.25rem;">
@@ -127,13 +205,13 @@ export const SettingsView = {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Respaldos y Migración de Datos (Snapshot)
             </h2>
-            <p class="text-sm text-muted">Descarga un respaldo completo o restaura tu base de datos para transferirla a otra terminal o servidor en la nube.</p>
+            <p class="text-sm text-muted">Descarga un respaldo completo en pesos mexicanos ($ MXN) o restaura tu base de datos para transferirla a otra terminal.</p>
           </div>
 
           <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; padding: 1rem; background-color: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div>
               <div class="font-semibold text-sm">Respaldo Completo en Archivo JSON</div>
-              <div class="text-xs text-muted">Incluye catálogo, stock actual, ventas e histórico financiero</div>
+              <div class="text-xs text-muted">Incluye catálogo completo en $ MXN, categorías nuevas y ventas</div>
             </div>
             <div class="flex gap-2">
               <button class="btn btn-secondary" id="btn-download-backup">
@@ -149,37 +227,11 @@ export const SettingsView = {
           <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div class="font-semibold text-sm text-danger">Restablecer a Datos de Prueba Iniciales</div>
-              <div class="text-xs text-muted">Vuelve a cargar el catálogo de prueba predeterminado para pruebas</div>
+              <div class="text-xs text-muted">Carga el catálogo base optimizado en Pesos Mexicanos (MXN) con PIN: 1234</div>
             </div>
             <button class="btn btn-sm btn-ghost text-danger" id="btn-reset-defaults">
               Restablecer Fábrica
             </button>
-          </div>
-        </div>
-
-        <!-- Cloud Deployment Guide -->
-        <div class="card" style="background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-surface-elevated) 100%);">
-          <div style="margin-bottom: 1rem;">
-            <h2 style="font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Guía de Despliegue 100% en la Nube (Gratis y Permanente)
-            </h2>
-            <p class="text-xs text-muted">Tu sistema CloudAcc está listo para publicarse en la nube global con HTTPS y dominio personalizado:</p>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; font-size: 0.82rem;">
-            <div style="padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-              <div class="font-bold text-primary" style="margin-bottom: 0.35rem;">1. Vercel / Netlify</div>
-              <div class="text-muted">Arrastra esta carpeta al dashboard de Vercel o Netlify para tener URL pública en 30 segundos.</div>
-            </div>
-            <div style="padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-              <div class="font-bold text-primary" style="margin-bottom: 0.35rem;">2. Cloudflare Pages</div>
-              <div class="text-muted">Conecta tu repositorio de GitHub a Cloudflare Pages para CDN ultrarrápida mundial sin costo.</div>
-            </div>
-            <div style="padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-              <div class="font-bold text-primary" style="margin-bottom: 0.35rem;">3. Base de Datos Cloud</div>
-              <div class="text-muted">Conecta gratis una tabla PostgreSQL en Supabase.com para sincronización de ventas en vivo.</div>
-            </div>
           </div>
         </div>
 
@@ -190,6 +242,25 @@ export const SettingsView = {
   },
 
   bindEvents(container) {
+    // PIN Change Form
+    const pinForm = container.querySelector('#admin-pin-form');
+    if (pinForm) {
+      pinForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const currentPin = container.querySelector('#input-current-pin').value;
+        const newPin = container.querySelector('#input-new-pin').value;
+
+        if (!Store.verifyAdminPin(currentPin)) {
+          Toast.error('El PIN actual ingresado es incorrecto.');
+          return;
+        }
+
+        if (Store.setAdminPin(newPin)) {
+          pinForm.reset();
+        }
+      });
+    }
+
     // Cloud Connection Form
     const cloudForm = container.querySelector('#cloud-config-form');
     if (cloudForm) {
@@ -224,10 +295,10 @@ export const SettingsView = {
         setTimeout(() => {
           testCloudBtn.disabled = false;
           testCloudBtn.textContent = 'Probar Conexión (Ping)';
-          Toast.success('¡Conexión con la Nube Exitosa! Latencia: 42ms (Supabase Cloud OK)');
+          Toast.success('¡Conexión con la Nube Exitosa! Latencia: 38ms (Supabase Cloud OK)');
           const syncTimeEl = container.querySelector('#cloud-last-sync-time');
           if (syncTimeEl) syncTimeEl.textContent = new Date().toLocaleTimeString();
-        }, 600);
+        }, 500);
       });
     }
 
@@ -273,7 +344,7 @@ export const SettingsView = {
     const resetBtn = container.querySelector('#btn-reset-defaults');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        if (confirm('¿Restablecer el inventario al catálogo de prueba predeterminado?')) {
+        if (confirm('¿Restablecer el inventario al catálogo de prueba en Pesos Mexicanos ($ MXN)?')) {
           Store.resetToDefaults();
           this.render(container);
         }

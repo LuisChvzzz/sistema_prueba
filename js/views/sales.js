@@ -220,9 +220,18 @@ export const SalesView = {
     container.querySelectorAll('.btn-refund-sale').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const id = e.currentTarget.getAttribute('data-id');
-        if (confirm(`¿Confirma el reembolso del ticket ${id}? Los artículos regresarán automáticamente al inventario.`)) {
+
+        if (Store.getCurrentUser() === 'employee') {
+          const pin = prompt('Autorización requerida: Ingrese el PIN de Administrador para procesar el reembolso:');
+          if (!pin || !Store.verifyAdminPin(pin)) {
+            Toast.error('PIN incorrecto. Reembolso cancelado.');
+            return;
+          }
+        }
+
+        if (confirm(`¿Confirma la devolución del ticket ${id}? Los artículos regresarán automáticamente al inventario.`)) {
           Store.refundSale(id);
-          Toast.warning(`Venta ${id} reembolsada. Stock restaurado.`);
+          Toast.warning(`Venta ${id} reembolsada. Stock reintegrado.`);
         }
       });
     });

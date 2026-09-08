@@ -1,12 +1,12 @@
 /* ==========================================================================
-   CloudAcc - Reactive Cloud Store
+   CloudAcc - Reactive Cloud Store (with MXN, Custom Categories & RBAC)
    Offline-first state management with cloud synchronization and snapshot exports
    ========================================================================== */
 
 import { INITIAL_PRODUCTS, INITIAL_SALES, INITIAL_SETTINGS, INITIAL_CATEGORIES } from './sample-data.js';
 import { Toast } from './utils/notifications.js';
 
-const STORAGE_KEY = 'cloudacc_store_v1';
+const STORAGE_KEY = 'cloudacc_store_v2'; // Migrated to v2 for MXN and categories
 
 class AppStore {
   constructor() {
@@ -21,12 +21,19 @@ class AppStore {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
+        const settings = {
+          ...INITIAL_SETTINGS,
+          ...(parsed.settings || {}),
+          currency: 'MXN' // Enforce Mexican Pesos
+        };
+
         return {
-          products: parsed.products || INITIAL_PRODUCTS,
+          products: parsed.products && parsed.products.length > 0 ? parsed.products : INITIAL_PRODUCTS,
           sales: parsed.sales || INITIAL_SALES,
-          settings: parsed.settings || INITIAL_SETTINGS,
-          categories: parsed.categories || INITIAL_CATEGORIES,
+          settings,
+          categories: parsed.categories && parsed.categories.length > 0 ? parsed.categories : INITIAL_CATEGORIES,
           theme: parsed.theme || 'dark',
+          currentUser: parsed.currentUser || 'admin',
           cloudStatus: {
             connected: true,
             lastSync: new Date().toISOString(),
@@ -44,6 +51,7 @@ class AppStore {
       settings: INITIAL_SETTINGS,
       categories: INITIAL_CATEGORIES,
       theme: 'dark',
+      currentUser: 'admin',
       cloudStatus: {
         connected: true,
         lastSync: new Date().toISOString(),
@@ -59,7 +67,8 @@ class AppStore {
         sales: this.state.sales,
         settings: this.state.settings,
         categories: this.state.categories,
-        theme: this.state.theme
+        theme: this.state.theme,
+        currentUser: this.state.currentUser
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toPersist));
     } catch (e) {
@@ -88,6 +97,75 @@ class AppStore {
   }
 
   // ------------------------------------------------------------------------
+  // User Roles & Security (Admin / Employee / PIN)
+  // ------------------------------------------------------------------------
+  getCurrentUser() {
+    return this.state.currentUser || 'admin';
+  }
+
+  setCurrentUser(role) {
+    if (role !== 'admin' && role !== 'employee') return;
+    this.state.currentUser = role;
+    this.saveState();
+    this.notify('user', role);
+  }
+
+  verifyAdminPin(enteredPin) {
+    const validPin = (this.state.settings && this.state.settings.adminPin) ? String(this.state.settings.adminPin) : '1234';
+    return String(enteredPin).trim() === validPin.trim();
+  }
+
+  setAdminPin(newPin) {
+    const cleanPin = String(newPin).trim();
+    if (cleanPin.length < 4) {
+      Toast.error('El PIN debe tener al menos 4 dígitos.');
+      return false;
+    }
+    this.state.settings.adminPin = cleanPin;
+    this.saveState();
+    this.triggerCloudSync('admin_pin_updated');
+    this.notify('settings', this.state.settings);
+    Toast.success('Código PIN de Administrador actualizado');
+    return true;
+  }
+
+  // ------------------------------------------------------------------------
+  // Categories Management (Dynamic CRUD)
+  // ------------------------------------------------------------------------
+  getCategories() {
+    return this.state.categories;
+  }
+
+  addCategory(categoryName) {
+    const trimmed = (categoryName || '').trim();
+    if (!trimmed) {
+      Toast.error('El nombre de la categoría no puede estar vacío.');
+      return false;
+    }
+
+    const exists = this.state.categories.some(c => c.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      Toast.warning('Esta categoría ya existe en el catálogo.');
+      return false;
+    }
+
+    this.state.categories.push(trimmed);
+    this.saveState();
+    this.triggerCloudSync('category_add');
+    this.notify('categories', this.state.categories);
+    Toast.success(`Categoría "${trimmed}" creada exitosamente`);
+    return trimmed;
+  }
+
+  removeCategory(categoryName) {
+    this.state.categories = this.state.categories.filter(c => c !== categoryName);
+    this.saveState();
+    this.triggerCloudSync('category_remove');
+    this.notify('categories', this.state.categories);
+    return true;
+  }
+
+  // ------------------------------------------------------------------------
   // Products / Inventory Actions
   // ------------------------------------------------------------------------
   getProducts() {
@@ -99,6 +177,11 @@ class AppStore {
   }
 
   addProduct(productData) {
+    // If the product specifies a new category not yet in categories list, add it
+    if (productData.category && !this.state.categories.includes(productData.category)) {
+      this.state.categories.push(productData.category);
+    }
+
     const newProduct = {
       ...productData,
       id: `prod-${Date.now()}`,
@@ -112,12 +195,17 @@ class AppStore {
     this.saveState();
     this.triggerCloudSync('product_create');
     this.notify('products', this.state.products);
+    this.notify('categories', this.state.categories);
     return newProduct;
   }
 
   updateProduct(id, updatedData) {
     const index = this.state.products.findIndex(p => p.id === id);
     if (index === -1) return false;
+
+    if (updatedData.category && !this.state.categories.includes(updatedData.category)) {
+      this.state.categories.push(updatedData.category);
+    }
 
     this.state.products[index] = {
       ...this.state.products[index],
@@ -131,6 +219,7 @@ class AppStore {
     this.saveState();
     this.triggerCloudSync('product_update');
     this.notify('products', this.state.products);
+    this.notify('categories', this.state.categories);
     return this.state.products[index];
   }
 
@@ -231,7 +320,7 @@ class AppStore {
     const subtotal = this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
     const totalCost = this.cart.reduce((sum, item) => sum + (item.cost * item.qty), 0);
     const discount = Math.min(subtotal, this.cartDiscount);
-    const tax = 0; // Price includes tax
+    const tax = 0;
     const total = Math.max(0, subtotal - discount + tax);
     const totalItems = this.cart.reduce((sum, item) => sum + item.qty, 0);
 
@@ -258,7 +347,6 @@ class AppStore {
     const totals = this.getCartTotals();
     if (totals.items.length === 0) return null;
 
-    // Deduct stock for each item
     totals.items.forEach(cartItem => {
       const product = this.getProductById(cartItem.id);
       if (product) {
@@ -272,6 +360,7 @@ class AppStore {
       id: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
       date: new Date().toISOString(),
       customer: customer.trim() || 'Cliente Mostrador',
+      cashier: this.state.currentUser === 'employee' ? 'Empleado (Cajero)' : 'Administrador',
       items: totals.items.map(i => ({
         id: i.id,
         name: i.name,
@@ -333,7 +422,8 @@ class AppStore {
   updateSettings(newSettings) {
     this.state.settings = {
       ...this.state.settings,
-      ...newSettings
+      ...newSettings,
+      currency: 'MXN' // Enforce MXN
     };
     this.saveState();
     this.notify('settings', this.state.settings);
@@ -353,27 +443,24 @@ class AppStore {
     return newTheme;
   }
 
-  // ------------------------------------------------------------------------
-  // Cloud Sync & Backup Engine
-  // ------------------------------------------------------------------------
   triggerCloudSync(reason = 'auto') {
     this.state.cloudStatus.isSyncing = true;
     this.notify('cloudStatus', this.state.cloudStatus);
 
-    // Simulate real cloud asynchronous handshake with Supabase/Firebase
     setTimeout(() => {
       this.state.cloudStatus.isSyncing = false;
       this.state.cloudStatus.lastSync = new Date().toISOString();
       this.state.cloudStatus.connected = true;
       this.notify('cloudStatus', this.state.cloudStatus);
-    }, 600);
+    }, 500);
   }
 
   exportJSONSnapshot() {
     const snapshot = {
       appName: 'CloudAcc Mobile Accessories Management',
-      version: '1.0.0',
+      version: '2.0.0',
       exportedAt: new Date().toISOString(),
+      currency: 'MXN',
       data: {
         products: this.state.products,
         sales: this.state.sales,
@@ -389,7 +476,7 @@ class AppStore {
     a.download = `cloudacc_backup_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    Toast.success('Copia de seguridad en la nube descargada exitosamente');
+    Toast.success('Copia de seguridad descargada exitosamente');
   }
 
   importJSONSnapshot(jsonString) {
@@ -401,18 +488,19 @@ class AppStore {
 
       this.state.products = parsed.data.products;
       this.state.sales = parsed.data.sales || [];
-      if (parsed.data.settings) this.state.settings = parsed.data.settings;
+      if (parsed.data.settings) this.state.settings = { ...parsed.data.settings, currency: 'MXN' };
       if (parsed.data.categories) this.state.categories = parsed.data.categories;
 
       this.saveState();
       this.triggerCloudSync('backup_restore');
       this.notify('products', this.state.products);
       this.notify('sales', this.state.sales);
+      this.notify('categories', this.state.categories);
       this.notify('settings', this.state.settings);
-      Toast.success('Base de datos restaurada y sincronizada correctamente');
+      Toast.success('Base de datos restaurada y sincronizada');
       return true;
     } catch (e) {
-      Toast.error(`Error al importar respaldo: ${e.message}`);
+      Toast.error(`Error al importar: ${e.message}`);
       return false;
     }
   }
@@ -421,12 +509,16 @@ class AppStore {
     this.state.products = [...INITIAL_PRODUCTS];
     this.state.sales = [...INITIAL_SALES];
     this.state.settings = { ...INITIAL_SETTINGS };
+    this.state.categories = [...INITIAL_CATEGORIES];
+    this.state.currentUser = 'admin';
     this.saveState();
     this.triggerCloudSync('factory_reset');
     this.notify('products', this.state.products);
     this.notify('sales', this.state.sales);
+    this.notify('categories', this.state.categories);
     this.notify('settings', this.state.settings);
-    Toast.info('Datos restaurados al catálogo de prueba inicial');
+    this.notify('user', this.state.currentUser);
+    Toast.info('Datos restablecidos al catálogo base en Pesos Mexicanos (MXN)');
   }
 }
 

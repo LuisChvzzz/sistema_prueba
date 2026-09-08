@@ -9,17 +9,17 @@ export const Formatters = {
    * @param {number} amount
    * @param {string} currencyCode 'MXN', 'USD', 'COP', 'EUR', etc.
    */
-  currency(amount, currencyCode = 'USD') {
+  currency(amount, currencyCode = 'MXN') {
     const num = Number(amount) || 0;
     try {
       return new Intl.NumberFormat('es-MX', {
         style: 'currency',
-        currency: currencyCode,
+        currency: currencyCode || 'MXN',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }).format(num);
     } catch {
-      return `$${num.toFixed(2)}`;
+      return `$${num.toFixed(2)} MXN`;
     }
   },
 

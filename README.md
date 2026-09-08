@@ -7,17 +7,24 @@ Un sistema web moderno, minimalista, reactivo y escalable diseñado específicam
 
 ## 🌟 Características Principales
 
-1. **Especializado en Accesorios para Smartphones**:
+1. **Especializado en Accesorios para Smartphones (100% en Pesos Mexicanos - $ MXN)**:
+   - Todo el catálogo, precios, costos, utilidades y tickets configurados en **Pesos Mexicanos (MXN)**.
    - Atributos por modelo de teléfono compatible (*iPhone 15 Pro, Galaxy S24 Ultra, Xiaomi Redmi Note 13, Universal*, etc.).
-   - Categorías predefinidas: Fundas & Cases, Micas & Vidrio Templado 9D, Cargadores GaN & Cables reforzados, Audio & TWS con cancelación de ruido, Soportes MagSafe y Baterías Portátiles.
+   - **Gestor Dinámico de Nuevas Categorías**: agrega categorías personalizadas con 1 clic (ej. *Smartwatches, Micas de Hidrogel, Soportes de Escritorio*) para productos que no coincidan con las existentes.
    - Generador automático de SKUs inteligentes y códigos de barras.
    - Cálculo dinámico de **Margen de Ganancia (%)** y ganancia neta en tiempo real.
 
-2. **Terminal Punto de Venta (POS) Ultra Ágil**:
+2. **Sistema de Usuarios & Roles con PIN de Seguridad**:
+   - **Rol Administrador (👑)**: Acceso total al Tablero Ejecutivo, Inventario, Historial de Ventas, Cancelaciones y Configuración Nube.
+   - **Rol Empleado / Cajero (👤)**: Acceso exclusivo a la terminal de Punto de Venta (POS) para cobrar y emitir tickets.
+   - **Bloqueo por PIN de Seguridad**: Si el empleado intenta ingresar a cualquier otra sección (Inventario, Finanzas, Ajustes), el sistema despliega un teclado numérico PIN de autorización (PIN predeterminado: `1234`, modificable en Configuración).
+   - Alternador rápido de sesión en la barra superior para cambios de turno de cajeros.
+
+3. **Terminal Punto de Venta (POS) Ultra Ágil**:
    - Búsqueda predictiva instantánea por accesorio, marca, modelo o SKU.
    - Filtros rápidos tipo pastilla/chips por modelo compatible y categoría.
    - Carrito de venta interactivo con selector de cantidades y descuentos.
-   - Métodos de pago flexibles: Efectivo (con botones rápidos de denominación y cálculo de cambio), Tarjeta, Transferencia Digital / QR y Pago Mixto.
+   - Métodos de pago flexibles: Efectivo en billetes mexicanos ($50, $100, $200, $500, $1000 MXN con cálculo de cambio), Tarjeta, Transferencia SPEI / QR y Pago Mixto.
    - **Comprobante Térmico Digital (80mm)**: listo para imprimir en impresoras térmicas de tickets o compartir por WhatsApp con 1 clic.
 
 3. **Control de Inventario & Alertas de Stock**:

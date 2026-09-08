@@ -14,7 +14,7 @@ export const PosView = {
 
   render(container) {
     const products = Store.getProducts();
-    const categories = Store.state.categories;
+    const categories = Store.getCategories();
     const settings = Store.getSettings();
 
     // Extract unique models from catalog
@@ -196,32 +196,32 @@ export const PosView = {
             <div class="form-group">
               <label class="form-label">Método de Pago</label>
               <select class="form-select" id="checkout-payment-method">
-                <option value="Efectivo" selected>Efectivo</option>
-                <option value="Tarjeta">Tarjeta Débito / Crédito</option>
-                <option value="Transferencia">Transferencia Digital / QR</option>
+                <option value="Efectivo" selected>Efectivo ($ MXN)</option>
+                <option value="Tarjeta">Tarjeta Débito / Crédito / Terminal</option>
+                <option value="Transferencia">Transferencia SPEI / QR</option>
                 <option value="Mixto">Pago Mixto</option>
               </select>
             </div>
 
             <div id="cash-payment-section">
               <div class="form-group">
-                <label class="form-label">Monto Recibido</label>
-                <input type="number" step="0.5" class="form-input font-bold" id="checkout-amount-paid" value="${cartTotals.total}">
+                <label class="form-label">Monto Recibido ($ MXN)</label>
+                <input type="number" step="10" class="form-input font-bold" id="checkout-amount-paid" value="${cartTotals.total}">
               </div>
 
-              <!-- Quick cash buttons -->
+              <!-- Quick cash buttons in MXN -->
               <div class="flex gap-2" style="margin-bottom: 1rem; flex-wrap: wrap;">
                 <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="exact">Monto Exacto</button>
-                <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="20">$20</button>
                 <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="50">$50</button>
                 <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="100">$100</button>
                 <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="200">$200</button>
                 <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="500">$500</button>
+                <button type="button" class="btn btn-sm btn-secondary quick-cash-btn" data-val="1000">$1000</button>
               </div>
 
               <div class="flex justify-between items-center" style="padding: 0.85rem; background: var(--bg-surface-elevated); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
                 <span class="font-semibold text-sm">Cambio / Vuelto:</span>
-                <span class="font-bold text-lg text-success" id="checkout-change-display">$0.00</span>
+                <span class="font-bold text-lg text-success" id="checkout-change-display">$0.00 MXN</span>
               </div>
             </div>
           </div>
